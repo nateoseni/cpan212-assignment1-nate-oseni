@@ -11,6 +11,29 @@ import { HttpError } from './http-error.js';
 //     (err.name is 'TimeoutError'), 502 for a network failure, a status that
 //     isn't ok, or a body that isn't JSON.
 
+async function fetchJson(url) {
+  let res;
+  try {
+    res = await fetch(url, { signal: AbortSignal.timeout(config.upstreamTimeoutMs) });
+  } catch (err) {
+    if (err.name === 'TimeoutError') {
+      throw new HttpError(504, 'Upstream timeout');
+    }
+    throw new HttpError(502, 'Network failure');
+  }
+
+  if (!res.ok) {
+    throw new HttpError(502, `Upstream error status ${res.status}`);
+  }
+  try {
+    return await res.json();
+  } catch (err) {
+    throw new HttpError(502, 'Invalid JSON response from upstream');
+  }
+}
+  
+  
+
 // TODO (you): look up a city with the geocoding API and return
 // { name, region, country, latitude, longitude, timezone } for the first result.
 // Throw a 404 HttpError when there are no results.
