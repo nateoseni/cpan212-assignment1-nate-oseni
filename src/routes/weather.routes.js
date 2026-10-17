@@ -29,16 +29,39 @@ weatherRouter.get('/weather', (req, res, next) => {
 // TODO (you): GET /api/compare?cities=Toronto,Vancouver,Halifax
 // Validate with parseCities, start every lookup at once with Promise.allSettled,
 // then build the cities array and the summary described on the assignment page.
-weatherRouter.get('/compare', (req, res, next) => {
+weatherRouter.get('/compare', async (req, res, next) => {
   try {
+
+    //validate with parseCities
     const validatedCities = parseCities(req.query.cities);
+
+    //start every lookup at once with Promise.allSettled
     const weatherPromises = validatedCities.map(city => getCityWeather(city));
     const weatherResults = await Promise.allSettled(weatherPromises);
 
-    const cities = weatherResults.map((result, index) => {
+    //build the cities array and summary
+    const citiesResults = weatherResults.map((result, index) => {
       if (result.status === 'fulfilled') {
-        return result.value;
+        return {
+          city: validatedCities[index],
+          data: result.value,
+          success: true
+        };
       } else {
-        return { error: `Failed to fetch weather for ${validatedCities[index]}` };
+        return {
+          city: validatedCities[index],
+          error: result.reason.message,
+          success: false
+        };
       }
+});
+    return res.status(200).json({
+      data: {
+        cities: citiesResults
+      },
+      attribution: 'Weather data provided by Open-Meteo'
+    });
+  } catch (err) {
+    next(err);
+  }
 });
