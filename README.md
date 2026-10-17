@@ -2,6 +2,7 @@
 
 TODO (you): one or two sentences on what this service does.
 
+This is an express weather API that utilizes Open-Mateo and returns data about cities including weather forecasts, comparing data between cities, and caches the results.
 ## Run it
 
 TODO (you): the commands to install and start it, including copying `.env.example` to `.env`.
