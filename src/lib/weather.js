@@ -5,15 +5,50 @@ import { describeWeatherCode } from './weather-codes.js';
 // TODO (you): create one cache for the whole app, with a time to live of
 // config.cacheTtlSeconds.
 
+
+const cache = new Map();
+let hits = 0;
+let misses = 0;
+
 // TODO (you): return the weather summary for one city, in the shape shown on
 // the assignment page. Check the cache first. On a miss, geocode the city, get
 // the forecast, build the summary, store it, and return it with cached: false.
 // On a hit, return the stored summary with cached: true.
 export async function getCityWeather(city) {
-  throw new Error('getCityWeather is not written yet');
+  //coordinates from city name
+  const location = await geocodeCity(city);
+
+  //fetch forecast using latitude and longitude
+  const forecast = await getForecast(location.latitude, location.longitude);
+
+  //build the summary object and return it
+  return {
+    location: {
+      name: location.name,
+      region: location.region,
+      country: location.country,
+      latitude: location.latitude,
+      longitude: location.longitude,
+      timezone: forecast.timezone
+    },
+    current: {
+      ...forecast.current,
+      description: describeWeatherCode(forecast.current.weather_code)
+    },
+    daily: forecast.daily,
+    fetchedAt: new Date().toISOString(),
+    cached: false
+  };
 }
 
+
 // TODO (you): return the cache statistics for GET /api/cache/stats.
+
 export function getCacheStats() {
-  throw new Error('getCacheStats is not written yet');
+  return {
+    entries: 0,
+    hits: 0,
+    misses: 0,
+    ttlSeconds: 0
+  };
 }
